@@ -2,17 +2,17 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Employee = require('../models/Employee');
+const verify = require('../middleware/auth.js')
 
 const router = express.Router();
 
 // Employee Registration
 router.post('/register', async (req, res) => {
   const { name, email, password, resume } = req.body;
-
   try {
     let employee = await Employee.findOne({ email });
     if (employee) {
-      return res.status(400).json({ msg: 'Employee already exists' });
+      return res.status(400).json({ data:employee, msg: 'Employee already exists' });
     }
 
     employee = new Employee({
@@ -35,7 +35,7 @@ router.post('/register', async (req, res) => {
 
     jwt.sign(payload, 'jwtSecret', { expiresIn: 360000 }, (err, token) => {
       if (err) throw err;
-      res.json({ token });
+      res.json({ token, employee });
     });
   } catch (err) {
     console.error(err.message);
@@ -44,7 +44,7 @@ router.post('/register', async (req, res) => {
 });
 
 // Employee Login
-router.post('/login', async (req, res) => {
+router.post('/login', verify, async (req, res) => {
   const { email, password } = req.body;
 
   try {
@@ -66,7 +66,7 @@ router.post('/login', async (req, res) => {
 
     jwt.sign(payload, 'jwtSecret', { expiresIn: 360000 }, (err, token) => {
       if (err) throw err;
-      res.json({ token });
+      res.json({ token, employee });
     });
   } catch (err) {
     console.error(err.message);

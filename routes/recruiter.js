@@ -2,17 +2,17 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Recruiter = require('../models/Recruiter');
+const  verify = require('../middleware/auth.js')
 
 const router = express.Router();
 
 // Recruiter Registration
 router.post('/register', async (req, res) => {
   const { name, email, password, company } = req.body;
-
   try {
     let recruiter = await Recruiter.findOne({ email });
     if (recruiter) {
-      return res.status(400).json({ msg: 'Recruiter already exists' });
+      return res.status(400).json({ data:recruiter, msg: 'Recruiter already exists' });
     }
 
     recruiter = new Recruiter({
@@ -35,7 +35,7 @@ router.post('/register', async (req, res) => {
 
     jwt.sign(payload, 'jwtSecret', { expiresIn: 360000 }, (err, token) => {
       if (err) throw err;
-      res.json({ token });
+      res.json({ token,recruiter });
     });
   } catch (err) {
     console.error(err.message);
@@ -44,7 +44,7 @@ router.post('/register', async (req, res) => {
 });
 
 // Recruiter Login
-router.post('/login', async (req, res) => {
+router.post('/login',verify, async (req, res) => {
   const { email, password } = req.body;
 
   try {
@@ -55,7 +55,7 @@ router.post('/login', async (req, res) => {
 
     const isMatch = await bcrypt.compare(password, recruiter.password);
     if (!isMatch) {
-      return res.status(400).json({ msg: 'Invalid Credentials' });
+      return res.status(400).json({data:recruiter,  msg: 'Invalid Credentials' });
     }
 
     const payload = {
@@ -66,7 +66,7 @@ router.post('/login', async (req, res) => {
 
     jwt.sign(payload, 'jwtSecret', { expiresIn: 360000 }, (err, token) => {
       if (err) throw err;
-      res.json({ token });
+      res.json({ token ,recruiter});
     });
   } catch (err) {
     console.error(err.message);

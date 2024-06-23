@@ -8,7 +8,7 @@ const app = express();
 app.use(bodyParser.json());
 
 // MongoDB connection
-mongoose.connect('mongodb://localhost:27017/', {
+mongoose.connect('mongodb://localhost:27017/careerVista', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 }).then(() => {
